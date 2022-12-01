@@ -7,7 +7,7 @@ declare function isConnected(db: Db): Promise<boolean>;
 declare function connect(database?: string): Promise<Db | undefined>;
 declare function disconnect(): Promise<void>;
 declare function db(database: string): Db;
-declare function auth(params: Utils.AuthParams): MongoClient;
+declare function auth(params: Utils.AuthParams, options?: MongoClientOptions): MongoClient;
 declare function renameDatabase(dbName: string, newDbName: string): Promise<Db>;
 export declare const MongoDB: {
     auth: typeof auth;

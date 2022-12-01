@@ -6,7 +6,15 @@ export type MongoConfig = Utils.AuthParams & MongoClientOptions;
 let mongodb: MongoClient | undefined;
 
 export function InitMongo(config: MongoConfig) {
-   mongodb = auth(config);
+   const options: MongoClientOptions = {};
+   const tempConfig: any = {...config};
+   const keys = ['hostname', 'port', 'username', 'password', 'database', 'schema'];
+   keys.forEach(key => {
+      if (tempConfig[key]) {
+         tempConfig[key] = tempConfig[key];
+      }
+   });
+   mongodb = auth(tempConfig, options);
 }
 
 async function collectionExists(db: Db, collection: string) {
@@ -57,8 +65,9 @@ function db(database: string): Db {
    return db;
 }
 
-function auth(params: Utils.AuthParams): MongoClient {
-   return new MongoClient(Utils.makeUrl(params));
+function auth(params: Utils.AuthParams, options?: MongoClientOptions): MongoClient {
+   const url = Utils.makeUrl(params);
+   return new MongoClient(url, options);
 }
 
 async function renameDatabase(dbName: string, newDbName: string) {

@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -64,7 +75,15 @@ var mongodb_1 = require("mongodb");
 var Utils = __importStar(require("./utils"));
 var mongodb;
 function InitMongo(config) {
-    mongodb = auth(config);
+    var options = {};
+    var tempConfig = __assign({}, config);
+    var keys = ['hostname', 'port', 'username', 'password', 'database', 'schema'];
+    keys.forEach(function (key) {
+        if (tempConfig[key]) {
+            tempConfig[key] = tempConfig[key];
+        }
+    });
+    mongodb = auth(tempConfig, options);
 }
 exports.InitMongo = InitMongo;
 function collectionExists(db, collection) {
@@ -161,8 +180,9 @@ function db(database) {
     !isConnected(db) && connect(database);
     return db;
 }
-function auth(params) {
-    return new mongodb_1.MongoClient(Utils.makeUrl(params));
+function auth(params, options) {
+    var url = Utils.makeUrl(params);
+    return new mongodb_1.MongoClient(url, options);
 }
 function renameDatabase(dbName, newDbName) {
     return __awaiter(this, void 0, void 0, function () {

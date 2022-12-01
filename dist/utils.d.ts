@@ -1,8 +1,10 @@
 export interface AuthParams {
     hostname: string;
+    schema?: string;
     port: string | number;
-    username: string;
-    password: string;
+    params?: Record<string, string>;
+    username?: string;
+    password?: string;
     database?: string;
 }
 export interface ToObjectOptions {

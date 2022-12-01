@@ -52,7 +52,20 @@ function toObject(doc, exec) {
 exports.toObject = toObject;
 function makeUrl(params) {
     var username = params.username, password = params.password, hostname = params.hostname, port = params.port, database = params.database;
-    var base = "mongodb://".concat(username, ":").concat(password, "@").concat(hostname, ":").concat(port);
+    var portStr = params.schema === 'mongodb+srv' ? '' : ":".concat(port);
+    var schema = params.schema || 'mongodb';
+    var paramsString = '';
+    if (params.params) {
+        paramsString += '?';
+        Object.keys(params.params).forEach(function (key) {
+            paramsString += "".concat(key, "=").concat(params.params ? params.params : [key], "&");
+        });
+        paramsString = paramsString.slice(0, -1);
+    }
+    var base = "".concat(schema, "://").concat(hostname).concat(portStr).concat(paramsString);
+    if (username && password) {
+        base = "".concat(schema, "://").concat(username, ":").concat(password, "@").concat(hostname).concat(portStr).concat(paramsString);
+    }
     return database ? "".concat(base, "/").concat(database) : base;
 }
 exports.makeUrl = makeUrl;

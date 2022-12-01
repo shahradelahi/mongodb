@@ -54,8 +54,23 @@ describe("Utils", () => {
       expect(newDoc.name).toBeUndefined();
    }, tenMin);
 
+   test("Make URL", async () => {
+
+      const url = MongoDB.utils.makeUrl({
+         hostname: "some-hostname.org",
+         port: 27017,
+         schema: "mongodb+srv",
+         username: "root",
+         password: "password"
+      });
+
+      expect(url).toBe("mongodb+srv://root:password@some-hostname.org");
+
+   }, tenMin);
+
 });
 
 afterAll(async () => {
    await MongoDB.disconnect();
+   console.info("Disconnected from MongoDB");
 });
