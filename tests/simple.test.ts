@@ -1,7 +1,6 @@
 import { afterAll, describe, expect, test } from "@jest/globals";
-import TodoCollection from "./todo.collection";
 import MongoDB from "../src/index";
-import { db } from "./mongodb";
+import { db, TodoCollection } from "./mongodb";
 
 const tenMin = 1000 * 60 * 10;
 
