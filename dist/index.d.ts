@@ -1,0 +1,22 @@
+import { Db, MongoClient, MongoClientOptions } from "mongodb";
+import * as Utils from "./utils";
+export type MongoConfig = Utils.AuthParams & MongoClientOptions;
+export declare function InitMongo(config: MongoConfig): void;
+declare function collectionExists(db: Db, collection: string): Promise<boolean>;
+declare function isConnected(db: Db): Promise<boolean>;
+declare function connect(database?: string): Promise<Db | undefined>;
+declare function disconnect(): Promise<void>;
+declare function db(database: string): Db;
+declare function auth(params: Utils.AuthParams): MongoClient;
+declare function renameDatabase(dbName: string, newDbName: string): Promise<Db>;
+export declare const MongoDB: {
+    auth: typeof auth;
+    connect: typeof connect;
+    disconnect: typeof disconnect;
+    isConnected: typeof isConnected;
+    db: typeof db;
+    renameDatabase: typeof renameDatabase;
+    collectionExists: typeof collectionExists;
+    utils: typeof Utils;
+};
+export default MongoDB;
