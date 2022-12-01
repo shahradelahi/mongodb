@@ -25,6 +25,23 @@
   "bugs": {
     "url": "https://github.com/litehex/mongodb/issues"
   },
+  "exports": {
+    ".": {
+      "default": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./collection": {
+      "default": "./dist/collection.js",
+      "types": "./dist/collection.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
   "homepage": "https://github.com/litehex/mongodb#readme",
   "devDependencies": {
     "@babel/core": "^7.20.5",

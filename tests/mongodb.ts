@@ -1,4 +1,4 @@
-import Collection, { CollectionConfig } from "../src/collection";
+import MongoCollection, { CollectionConfig } from "../src/collection";
 import MongoDB, { InitMongo } from "../src/index";
 
 InitMongo({
@@ -17,12 +17,11 @@ export const DATABASE = <const>{
 
 export const db = MongoDB.db(DATABASE.TEST);
 
-export class TodoCollection extends Collection {
+export class TodoCollection extends MongoCollection {
    getConfig(): CollectionConfig {
       return {
          name: "todo",
-         memory: false,
-         database: "test"
+         database: DATABASE.TEST
       };
    }
 
