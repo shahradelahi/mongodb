@@ -1,8 +1,8 @@
 export interface AuthParams {
    hostname: string
    schema?: string
-   port: string | number
-   params?: Record<string, string>
+   port?: string | number
+   params?: Record<string, any>
    username?: string
    password?: string
    database?: string
@@ -61,13 +61,13 @@ export function toObject(doc: any, exec: ToObjectOptions = {}) {
 
 export function makeUrl(params: AuthParams): string {
    const {username, password, hostname, port, database} = params;
-   const portStr = params.schema === 'mongodb+srv' ? '' : `:${port}`;
+   const portStr = params.schema === 'mongodb+srv' ? '' : `:${port?.toString() || '27017'}`;
    const schema = params.schema || 'mongodb';
    let paramsString = ''
    if (params.params) {
-      paramsString += '?';
+      paramsString += '/?';
       Object.keys(params.params).forEach(key => {
-         paramsString += `${key}=${params.params ? params.params : [key]}&`;
+         paramsString += `${key}=${params.params ? params.params[key] : ''}&`;
       });
       paramsString = paramsString.slice(0, -1);
    }

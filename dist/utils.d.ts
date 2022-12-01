@@ -1,8 +1,8 @@
 export interface AuthParams {
     hostname: string;
     schema?: string;
-    port: string | number;
-    params?: Record<string, string>;
+    port?: string | number;
+    params?: Record<string, any>;
     username?: string;
     password?: string;
     database?: string;

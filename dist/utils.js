@@ -52,13 +52,13 @@ function toObject(doc, exec) {
 exports.toObject = toObject;
 function makeUrl(params) {
     var username = params.username, password = params.password, hostname = params.hostname, port = params.port, database = params.database;
-    var portStr = params.schema === 'mongodb+srv' ? '' : ":".concat(port);
+    var portStr = params.schema === 'mongodb+srv' ? '' : ":".concat((port === null || port === void 0 ? void 0 : port.toString()) || '27017');
     var schema = params.schema || 'mongodb';
     var paramsString = '';
     if (params.params) {
-        paramsString += '?';
+        paramsString += '/?';
         Object.keys(params.params).forEach(function (key) {
-            paramsString += "".concat(key, "=").concat(params.params ? params.params : [key], "&");
+            paramsString += "".concat(key, "=").concat(params.params ? params.params[key] : '', "&");
         });
         paramsString = paramsString.slice(0, -1);
     }

@@ -4,9 +4,11 @@ import MongoDB, { InitMongo } from "../src/index";
 InitMongo({
    hostname: process.env.MONGO_HOSTNAME || "localhost",
    port: process.env.MONGO_PORT || 27017,
-   schema: process.env.MONGO_SCHEMA || "mongodb",
    username: process.env.MONGO_USERNAME || "root",
-   password: process.env.MONGO_PASSWORD || "password"
+   password: process.env.MONGO_PASSWORD || "password",
+   params: {
+      authMechanism: "DEFAULT"
+   }
 });
 
 export const DATABASE = <const>{
