@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, test } from "@jest/globals";
-import MongoDB from "../src/index";
-import { db, TodoCollection } from "./mongodb";
+import { db, MongoDB, Todo, TodoCollection, User, UsersCollection } from "./mongodb";
 import { faker } from "@faker-js/faker";
+import chalk from "chalk";
 
 const tenMin = 1000 * 60 * 10;
 
@@ -33,10 +33,35 @@ describe("Collection", () => {
    }, tenMin);
 
    test("Get document", async () => {
-      const result = await TodoCollection.getCollection().findOne({
-         completed: false
-      });
+      const result = await TodoCollection.findOne<Todo>({});
       expect(result).toBeTruthy();
+   }, tenMin);
+
+});
+
+describe("Generic Collections and Models", () => {
+
+   test("Get Gems of a User", async () => {
+
+      const result = await UsersCollection.findOne<User>({});
+
+      expect(result).toBeTruthy();
+      expect(result?.gems).toBeGreaterThanOrEqual(0);
+
+   }, tenMin);
+
+   test("Made up a Dummy User", async () => {
+
+      const user: User = {
+         nickname: faker.name.firstName(),
+         email: faker.internet.email(),
+         gems: faker.datatype.number()
+      }
+
+      const result = await UsersCollection.insertOne(user);
+
+      expect(result.acknowledged).toBeTruthy();
+
    }, tenMin);
 
 });
@@ -72,7 +97,7 @@ describe("Utils", () => {
          username: "root",
          password: "password",
          params: {
-            authMechanism: "DEFAULT",
+            authMechanism: "DEFAULT"
          }
       })).toBe("mongodb://root:password@localhost:27017/?authMechanism=DEFAULT");
 
@@ -82,5 +107,5 @@ describe("Utils", () => {
 
 afterAll(async () => {
    await MongoDB.disconnect();
-   console.info("Disconnected from MongoDB");
+   console.info(chalk.green("Disconnected from MongoDB"));
 });

@@ -1,0 +1,66 @@
+name: Create Distribution
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+# Dist branch
+# |
+# |- src (output of build)
+# |- LICENSE
+# |- README.md
+# |- package.json
+# |- package-lock.json
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create Environment File
+        run: echo "${{ secrets.ENVIRONMENT }}" > .env
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
+
+  build:
+    needs: testing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: npm run build
+
+      - name: Clean up dist version
+        run: |
+          rm -rf src
+          mv dist src
+          sed -i 's/"main": "src\/index.ts"/"main": "src\/index.js",\n  "types": "src\/index.d.ts"/' package.json
+          sed -i '/"tsconfig.json"/d' package.json
+          sed -i '/"build":/d' package.json
+          sed -i '/"test":/d' package.json
+
+      - name: Setup Git for Commit
+        uses: actions/setup-git@v2
+        with:
+          user.name: 'GitHub Actions'
+          user.email: '${{ github.actor }}@users.noreply.github.com'
+          token: ${{ secrets.RUNNER_TOKEN }}
+
+      - name: Commit and Push
+        run: |
+          git add .
+          git commit -m "Update dist"
+          git push

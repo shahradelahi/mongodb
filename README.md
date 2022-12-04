@@ -2,14 +2,15 @@
 
 This project uses the official MongoDB driver for Node.js. It is a wrapper around the official driver that provides a more convenient API for use with TypeScript and JavaScript.
 
-
 ### Installation
 
 ```bash
-npm install github:litehex/mongodb
+npm install github:litehex/mongodb#dist
 ```
 
 ### Usage
+
+#### Connecting to MongoDB
 
 ```typescript
 import MongoDB, { InitMongo } from "@litehex/mongodb";
@@ -22,6 +23,31 @@ InitMongo({
 });
 
 export const db = MongoDB.db("testing");
+```
+
+#### Creating a collection
+
+```typescript
+import { OptionalId, CollectionConfig } from "@litehex/mongodb";
+import Collection from "@litehex/mongodb/collection";
+
+export type User = OptionalId<{
+   nickname: string;
+   email: string;
+}>
+
+export class UsersCollection extends Collection<User> {
+   getConfig(): CollectionConfig {
+      return {
+         name: "users",
+         database: "testing"
+      }
+   }
+
+   static doSomething() {
+      console.log("Something");
+   }
+}
 ```
 
 ### License

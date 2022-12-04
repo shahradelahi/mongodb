@@ -1,5 +1,9 @@
 import MongoCollection, { CollectionConfig } from "../src/collection";
 import MongoDB, { InitMongo } from "../src/index";
+import { OptionalId } from "mongodb";
+
+export { MongoDB } from "../src/index";
+
 
 InitMongo({
    hostname: process.env.MONGO_HOSTNAME || "localhost",
@@ -17,6 +21,12 @@ export const DATABASE = <const>{
 
 export const db = MongoDB.db(DATABASE.TEST);
 
+
+export type Todo = OptionalId<{
+   title: string;
+   completed: boolean;
+}>
+
 export class TodoCollection extends MongoCollection {
    getConfig(): CollectionConfig {
       return {
@@ -27,5 +37,20 @@ export class TodoCollection extends MongoCollection {
 
    static createOne({name, completed}: { name: string, completed: boolean }) {
       return this.getCollection().insertOne({name, completed});
+   }
+}
+
+export type User = OptionalId<{
+   nickname: string;
+   email: string;
+   gems: number;
+}>
+
+export class UsersCollection extends MongoCollection<User> {
+   getConfig(): CollectionConfig {
+      return {
+         name: "users",
+         database: DATABASE.TEST
+      }
    }
 }

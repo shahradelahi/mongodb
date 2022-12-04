@@ -109,4 +109,17 @@ export const MongoDB = {
    utils: Utils
 }
 
+/**
+ * Exporting the Collection module
+ */
+export * from './collection';
+
+/**
+ * Exporting the Utils module
+ */
+export * from './utils';
+
+/**
+ * Export default MongoDB module
+ */
 export default MongoDB;
