@@ -120,6 +120,11 @@ export * from './collection';
 export * from './utils';
 
 /**
+ * Exporting the Original MongoDB types
+ */
+export * from './types';
+
+/**
  * Export default MongoDB module
  */
 export default MongoDB;

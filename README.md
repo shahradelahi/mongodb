@@ -13,7 +13,7 @@ npm install github:litehex/mongodb#dist
 #### Connecting to MongoDB
 
 ```typescript
-import MongoDB, { InitMongo } from "@litehex/mongodb";
+import { MongoDB, InitMongo } from "@litehex/mongodb";
 
 InitMongo({
    hostname: "localhost",
