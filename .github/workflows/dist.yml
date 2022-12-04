@@ -45,7 +45,7 @@ jobs:
 
       - name: Clean up dist version
         run: |
-          rm -rf src
+          rm -rf src .github
           mv dist src
           sed -i 's/"main": "src\/index.ts"/"main": "src\/index.js",\n  "types": "src\/index.d.ts"/' package.json
           sed -i '/"tsconfig.json"/d' package.json
@@ -53,14 +53,14 @@ jobs:
           sed -i '/"test":/d' package.json
 
       - name: Setup Git for Commit
-        uses: actions/setup-git@v2
-        with:
-          user.name: 'GitHub Actions'
-          user.email: '${{ github.actor }}@users.noreply.github.com'
-          token: ${{ secrets.RUNNER_TOKEN }}
+        run: |
+          git config --local user.email "${{ github.actor }}@users.noreply.github.com"
+          git config --local user.name "${{ github.actor }}"
+          git add .
+          git commit -m "Update dist version"
 
       - name: Commit and Push
-        run: |
-          git add .
-          git commit -m "Update dist"
-          git push
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.RUNNER_TOKEN }}
+          branch: dist
