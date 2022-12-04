@@ -27,21 +27,19 @@ console.log(chalk.yellow('Updating package.json...'));
 
 const packageJson = require('../package.json');
 
+delete packageJson.devDependencies;
+
 packageJson.exports = {
-   '.': {
-      'import': "./src/index.js",
-      'require': "./src/index.js",
-      'types': "./src/index.d.ts"
-   },
-   './collection': {
-      'import': "./src/collection.js",
-      'require': "./src/collection.js",
-      'types': "./src/collection.d.ts"
-   },
+   '.': "./src/index.js",
+   './collection': "./src/collection.js",
    './package.json': "./package.json"
 };
 
-delete packageJson.devDependencies;
+packageJson.typesVersions = {
+   '*': {
+      "collection": ["src/collection.d.ts"]
+   }
+}
 
 fs.writeFileSync(
     'package.json',

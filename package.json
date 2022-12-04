@@ -31,6 +31,14 @@
     "README.md",
     "LICENSE"
   ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./collection": "./src/collection.ts",
+    "./package.json": "./package.json"
+  },
+  "esnext": {
+    "main": "src/index.js"
+  },
   "homepage": "https://github.com/litehex/mongodb#readme",
   "devDependencies": {
     "@babel/core": "^7.20.5",
