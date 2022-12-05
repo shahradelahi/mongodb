@@ -6,9 +6,11 @@
     "sourceMap": true,
     "declaration": true,
     "skipLibCheck": true,
-    "esModuleInterop": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true
   },
   "ts-node": {
     "compilerOptions": {

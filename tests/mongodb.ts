@@ -25,18 +25,24 @@ export const db = MongoDB.db(DATABASE.TEST);
 export type Todo = OptionalId<{
    title: string;
    completed: boolean;
+   createdAt: Date;
 }>
 
 export class TodoCollection extends MongoCollection {
    getConfig(): CollectionConfig {
       return {
          name: "todo",
-         database: DATABASE.TEST
+         database: DATABASE.TEST,
+         timestamps: true,
+         timestampsFields: {
+            createdAt: "createdAt",
+         }
       };
    }
 
+
    static createOne({name, completed}: { name: string, completed: boolean }) {
-      return this.getCollection().insertOne({name, completed});
+      return this.insertOne({name, completed});
    }
 }
 
