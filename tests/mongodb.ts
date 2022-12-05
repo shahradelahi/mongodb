@@ -21,7 +21,6 @@ export const DATABASE = <const>{
 
 export const db = MongoDB.db(DATABASE.TEST);
 
-
 export type Todo = OptionalId<{
    title: string;
    completed: boolean;

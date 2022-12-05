@@ -12,7 +12,6 @@ import {
    InsertManyResult,
    InsertOneOptions,
    InsertOneResult,
-   MongoError,
    OptionalId,
    UpdateFilter,
    UpdateOptions,
@@ -67,12 +66,12 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
    private static readonly _collection?: Collection;
 
    private static _updateTimestamps(document: Document, isInsert: boolean) {
-      if (this.getConfig().timestamps) {
+      if (this._getConfig().timestamps) {
 
-         const format = this.getConfig().timestampsFormat || 'Millis';
+         const format = this._getConfig().timestampsFormat || 'Millis';
          const formattedDate = this._formatDate(new Date(), format);
 
-         const fields = this.getConfig().timestampsFields || {
+         const fields = this._getConfig().timestampsFields || {
             createdAt: 'createdAt',
             updatedAt: 'updatedAt'
          };
@@ -129,7 +128,7 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * Get the collection configuration.
     * @private
     */
-   private static getConfig(): CollectionConfig {
+   private static _getConfig(): CollectionConfig {
       return this.prototype.getConfig();
    }
 
@@ -151,7 +150,7 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @returns {string} The collection name.
     */
    static getCollectionName(): string {
-      return this.getConfig().name;
+      return this._getConfig().name;
    }
 
    /**
@@ -160,13 +159,16 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @returns {string} The database name.
     */
    static getDbName(): string {
-      if (typeof this.getConfig().database === "string") {
-         return this.getConfig().database as string;
+
+      if (typeof this._getConfig().database === "string") {
+         return this._getConfig().database as string;
       }
-      if (!this.getDb()) {
-         throw new MongoError("The given database is not a string and the database is not initialized.");
+
+      if (this._getConfig().database instanceof Db) {
+         return (this._getConfig().database as Db).databaseName;
       }
-      return this.getDb().databaseName;
+
+      throw new Error("Invalid typeof database name");
    }
 
    /**
@@ -315,3 +317,4 @@ export type UpdateQuery<TSchema extends Document = any> = UpdateFilter<TSchema> 
 export type UpdateResult<TSchema extends Document = any> = TSchema | MongoUpdateResult;
 
 export type LeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = Partial<T> & U[keyof U];
+
