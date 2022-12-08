@@ -27,18 +27,17 @@ export type Todo = OptionalId<{
    createdAt: Date;
 }>
 
-export class TodoCollection extends MongoCollection {
+export class TodoCollection extends MongoCollection<Todo> {
    getConfig(): CollectionConfig {
       return {
          name: "todo",
          database: DATABASE.TEST,
          timestamps: true,
          timestampsFields: {
-            createdAt: "createdAt",
+            createdAt: "createdAt"
          }
       };
    }
-
 
    static createOne({name, completed}: { name: string, completed: boolean }) {
       return this.insertOne({name, completed});
@@ -55,7 +54,8 @@ export class UsersCollection extends MongoCollection<User> {
    getConfig(): CollectionConfig {
       return {
          name: "users",
-         database: DATABASE.TEST
+         database: DATABASE.TEST,
+         timestamps: true
       }
    }
 }

@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, test } from "@jest/globals";
 import { db, MongoDB, Todo, TodoCollection, User, UsersCollection } from "./mongodb";
 import { faker } from "@faker-js/faker";
-import chalk from "chalk";
+import { green as logG } from "chalk";
 
 const tenMin = 1000 * 60 * 10;
 
@@ -64,6 +64,22 @@ describe("Generic Collections and Models", () => {
 
    }, tenMin);
 
+   test("Update a User", async () => {
+
+      const user = await UsersCollection.findOne<User>({});
+
+      expect(user).toBeTruthy();
+
+      const result = await UsersCollection.updateOne<User>({_id: user?._id}, {
+         $set: {
+            gems: faker.datatype.number()
+         }
+      });
+
+      expect(result.acknowledged).toBeTruthy();
+
+   }, tenMin);
+
 });
 
 describe("Utils", () => {
@@ -107,5 +123,5 @@ describe("Utils", () => {
 
 afterAll(async () => {
    await MongoDB.disconnect();
-   console.info(chalk.green("Disconnected from MongoDB"));
+   console.info(logG("Disconnected from MongoDB"));
 });

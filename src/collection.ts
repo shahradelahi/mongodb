@@ -23,8 +23,6 @@ import MongoDB from "./index";
 export interface CollectionConfig extends CollectionOptions {
    name: string;
    database: string | Db;
-   // Memory - Keep the collection instance in memory
-   memory?: boolean;
    // Timestamps - By default, the collection will add createdAt and updatedAt fields to the documents
    timestamps?: boolean;
    // Timestamps (format) - By default, the collection will use the Millis format for the timestamps
@@ -62,8 +60,6 @@ export interface CollectionConfig extends CollectionOptions {
  */
 export default abstract class MongoCollection<TSchema extends Document = Document> {
 
-   private static readonly _collection?: Collection;
-
    private static _updateTimestamps(document: Document, isInsert: boolean) {
       if (this._getConfig().timestamps) {
 
@@ -79,9 +75,16 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
             document[fields.createdAt] = formattedDate;
          }
 
-         if (fields.updatedAt && !document[fields.updatedAt]) {
+         if (isInsert && fields.updatedAt && !document[fields.updatedAt]) {
             document[fields.updatedAt] = formattedDate;
          }
+
+         if (!isInsert && fields.updatedAt) {
+            if (!document['$set'] || !document['$set'][fields.updatedAt]) {
+               document['$set'][fields.updatedAt] = formattedDate;
+            }
+         }
+
       }
       return document;
    }
@@ -136,11 +139,8 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     *
     * @returns {Collection<Document>} The collection instance.
     */
-   static getCollection(): Collection {
-      if (this._collection) {
-         return this._collection;
-      }
-      return this.getDb().collection(this.getCollectionName());
+   static getCollection<TSchema extends Document = Document>(): Collection<TSchema> {
+      return this.getDb().collection<TSchema>(this.getCollectionName());
    }
 
    /**
@@ -192,7 +192,7 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @returns {Promise<Document<TSchema>> | null>} The document.
     */
    static async findOne<TSchema extends Document = any>(filter: Filter<TSchema>, options?: FindOptions<TSchema>): Promise<TSchema | null> {
-      return this.getCollection().findOne(filter, options);
+      return this.getCollection<TSchema>().findOne(filter, options);
    }
 
    /**
@@ -208,7 +208,7 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @returns {Promise<FindCursor<TSchema>>} The cursor.
     */
    static async find<TSchema extends Document = any>(filter: Filter<TSchema>, options?: FindOptions<TSchema>): Promise<FindCursor<TSchema>> {
-      return this.getCollection().find<TSchema>(filter, options);
+      return this.getCollection<TSchema>().find<TSchema>(filter, options);
    }
 
    /**
@@ -257,7 +257,7 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @returns {Promise<UpdateResult>} The result.
     */
    static async updateOne<TSchema extends Document = any>(filter: Filter<TSchema>, update: UpdateQuery<TSchema>): Promise<UpdateResult> {
-      return this.getCollection().updateOne(filter, this._updateTimestamps(update, false));
+      return this.getCollection<TSchema>().updateOne(filter, this._updateTimestamps(update, false));
    }
 
    /**
@@ -274,7 +274,7 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @returns {Promise<UpdateResult>} The result.
     */
    static async updateMany<TSchema extends Document = any>(filter: Filter<TSchema>, update: UpdateQuery<TSchema>, options?: UpdateOptions): Promise<UpdateResult> {
-      return this.getCollection().updateMany(filter, this._updateTimestamps(update, false), options as UpdateOptions);
+      return this.getCollection<TSchema>().updateMany(filter, this._updateTimestamps(update, false), options as UpdateOptions);
    }
 
    /**
@@ -290,7 +290,7 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @returns {Promise<DeleteResult>} The result.
     */
    static async deleteOne<TSchema extends Document = any>(filter: Filter<TSchema>, options?: DeleteOptions): Promise<DeleteResult> {
-      return this.getCollection().deleteOne(filter, options as DeleteOptions);
+      return this.getCollection<TSchema>().deleteOne(filter, options as DeleteOptions);
    }
 
    /**
@@ -306,7 +306,7 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @returns {Promise<DeleteResult>} The result.
     */
    static async deleteMany<TSchema extends Document = any>(filter: Filter<TSchema>, options?: DeleteOptions): Promise<DeleteResult> {
-      return this.getCollection().deleteMany(filter, options as DeleteOptions);
+      return this.getCollection<TSchema>().deleteMany(filter, options as DeleteOptions);
    }
 
 }
