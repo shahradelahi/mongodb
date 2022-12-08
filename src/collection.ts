@@ -15,8 +15,7 @@ import {
    OptionalId,
    UpdateFilter,
    UpdateOptions,
-   UpdateResult as MongoUpdateResult,
-   WithId
+   UpdateResult as MongoUpdateResult
 } from 'mongodb';
 import MongoDB from "./index";
 
@@ -208,8 +207,8 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     *
     * @returns {Promise<FindCursor<TSchema>>} The cursor.
     */
-   static async find<TSchema extends WithId<Document> = any>(filter: Filter<TSchema>, options?: FindOptions<TSchema>): Promise<FindCursor<TSchema>> {
-      return this.getCollection().find(filter, options) as FindCursor<TSchema>;
+   static async find<TSchema extends Document = any>(filter: Filter<TSchema>, options?: FindOptions<TSchema>): Promise<FindCursor<TSchema>> {
+      return this.getCollection().find<TSchema>(filter, options);
    }
 
    /**
@@ -317,4 +316,3 @@ export type UpdateQuery<TSchema extends Document = any> = UpdateFilter<TSchema> 
 export type UpdateResult<TSchema extends Document = any> = TSchema | MongoUpdateResult;
 
 export type LeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = Partial<T> & U[keyof U];
-
