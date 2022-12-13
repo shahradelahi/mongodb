@@ -2,17 +2,22 @@ import {
    BulkWriteOptions,
    Collection,
    CollectionOptions,
+   Condition,
    Db,
    DeleteOptions,
    DeleteResult,
    Document,
-   Filter,
-   FindCursor,
+   Filter as MongoFilter,
+   FindCursor as MongoCursor,
    FindOptions,
    InsertManyResult,
    InsertOneOptions,
    InsertOneResult,
-   OptionalId,
+   Join,
+   NestedPaths,
+   ObjectId,
+   PropertyType,
+   RootFilterOperators,
    UpdateFilter,
    UpdateOptions,
    UpdateResult as MongoUpdateResult
@@ -192,7 +197,7 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @returns {Promise<Document<TSchema>> | null>} The document.
     */
    static async findOne<TSchema extends Document = any>(filter: Filter<TSchema>, options?: FindOptions<TSchema>): Promise<TSchema | null> {
-      return this.getCollection<TSchema>().findOne(filter, options);
+      return this.getCollection<TSchema>().findOne(filter as MongoFilter<TSchema>, options);
    }
 
    /**
@@ -208,7 +213,7 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @returns {Promise<FindCursor<TSchema>>} The cursor.
     */
    static async find<TSchema extends Document = any>(filter: Filter<TSchema>, options?: FindOptions<TSchema>): Promise<FindCursor<TSchema>> {
-      return this.getCollection<TSchema>().find<TSchema>(filter, options);
+      return this.getCollection<TSchema>().find<TSchema>(filter as MongoFilter<TSchema>, options);
    }
 
    /**
@@ -257,7 +262,7 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @returns {Promise<UpdateResult>} The result.
     */
    static async updateOne<TSchema extends Document = any>(filter: Filter<TSchema>, update: UpdateQuery<TSchema>): Promise<UpdateResult> {
-      return this.getCollection<TSchema>().updateOne(filter, this._updateTimestamps(update, false));
+      return this.getCollection<TSchema>().updateOne(filter as MongoFilter<TSchema>, this._updateTimestamps(update, false));
    }
 
    /**
@@ -274,7 +279,8 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @returns {Promise<UpdateResult>} The result.
     */
    static async updateMany<TSchema extends Document = any>(filter: Filter<TSchema>, update: UpdateQuery<TSchema>, options?: UpdateOptions): Promise<UpdateResult> {
-      return this.getCollection<TSchema>().updateMany(filter, this._updateTimestamps(update, false), options as UpdateOptions);
+      // return this.getCollection<TSchema>().updateMany(filter, this._updateTimestamps(update, false), options as UpdateOptions);
+      return this.getCollection<TSchema>().updateMany(filter as MongoFilter<TSchema>, this._updateTimestamps(update, false), options as UpdateOptions);
    }
 
    /**
@@ -290,7 +296,7 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @returns {Promise<DeleteResult>} The result.
     */
    static async deleteOne<TSchema extends Document = any>(filter: Filter<TSchema>, options?: DeleteOptions): Promise<DeleteResult> {
-      return this.getCollection<TSchema>().deleteOne(filter, options as DeleteOptions);
+      return this.getCollection<TSchema>().deleteOne(filter as MongoFilter<TSchema>, options as DeleteOptions);
    }
 
    /**
@@ -306,7 +312,7 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @returns {Promise<DeleteResult>} The result.
     */
    static async deleteMany<TSchema extends Document = any>(filter: Filter<TSchema>, options?: DeleteOptions): Promise<DeleteResult> {
-      return this.getCollection<TSchema>().deleteMany(filter, options as DeleteOptions);
+      return this.getCollection<TSchema>().deleteMany(filter as MongoFilter<TSchema>, options as DeleteOptions);
    }
 
 }
@@ -316,3 +322,19 @@ export type UpdateQuery<TSchema extends Document = any> = UpdateFilter<TSchema> 
 export type UpdateResult<TSchema extends Document = any> = TSchema | MongoUpdateResult;
 
 export type LeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = Partial<T> & U[keyof U];
+
+export type Filter<TSchema> = Partial<TSchema> | ({
+   [Property in Join<NestedPaths<WithId<TSchema>, []>, '.'>]?: Condition<PropertyType<WithId<TSchema>, Property>>;
+} & RootFilterOperators<WithId<TSchema>>) | ({
+   [Property in Join<NestedPaths<TSchema, []>, '.'>]?: Condition<PropertyType<TSchema, Property>>;
+} & RootFilterOperators<TSchema>)
+
+export type WithId<TSchema> = TSchema & {
+   _id: ObjectId;
+}
+
+export type OptionalId<TSchema> = Omit<TSchema, '_id'> & {
+   _id?: ObjectId | string;
+}
+
+export type FindCursor<TSchema extends Document = any> = MongoCursor<TSchema> | MongoCursor<WithId<TSchema>>

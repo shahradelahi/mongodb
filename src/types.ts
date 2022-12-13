@@ -8,15 +8,10 @@ export {
    DeleteOptions,
    DeleteResult,
    Document,
-   Filter,
-   FindCursor,
    FindOptions,
    InsertManyResult,
    InsertOneOptions,
    InsertOneResult,
    MongoError,
-   OptionalId,
-   UpdateFilter,
-   UpdateOptions,
-   WithId
+   ObjectId
 } from "mongodb";
