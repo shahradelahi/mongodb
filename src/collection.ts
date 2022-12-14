@@ -85,7 +85,11 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
          }
 
          if (!isInsert && fields.updatedAt) {
-            if (!document['$set'] || !document['$set'][fields.updatedAt]) {
+            if (!document['$set']) {
+               document['$set'] = {};
+            }
+
+            if (!document['$set'][fields.updatedAt]) {
                document['$set'][fields.updatedAt] = formattedDate;
             }
          }
