@@ -10,7 +10,9 @@ InitMongo({
    username: process.env.MONGO_USERNAME || "root",
    password: process.env.MONGO_PASSWORD || "password",
    params: {
-      authMechanism: "DEFAULT"
+      authMechanism: "DEFAULT",
+      proxyHost: process.env.MONGO_PROXY_HOST || "127.0.0.1",
+      proxyPort: process.env.MONGO_PROXY_PORT || 1080
    }
 });
 

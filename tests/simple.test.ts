@@ -96,9 +96,14 @@ describe("Utils", () => {
       expect(newDoc.name).toBeUndefined();
    }, tenMin);
 
-   test("Make URL", async () => {
+});
 
-      const randomHostname = faker.internet.domainName();
+describe("Mongo Url Maker", () => {
+
+
+   const randomHostname = faker.internet.domainName();
+
+   test("A SRV Schema", async () => {
 
       expect(MongoDB.utils.makeUrl({
          hostname: randomHostname,
@@ -107,6 +112,9 @@ describe("Utils", () => {
          password: "password"
       })).toBe(`mongodb+srv://root:password@${randomHostname}`);
 
+   });
+
+   test("A Normal Schema with Params", async () => {
       expect(MongoDB.utils.makeUrl({
          hostname: "localhost",
          port: 27017,
@@ -116,8 +124,19 @@ describe("Utils", () => {
             authMechanism: "DEFAULT"
          }
       })).toBe("mongodb://root:password@localhost:27017/?authMechanism=DEFAULT");
+   });
 
-   }, tenMin);
+   test("With Proxy settings", async () => {
+      expect(MongoDB.utils.makeUrl({
+         hostname: "localhost",
+         username: "root",
+         password: "password",
+         params: {
+            proxyHost: randomHostname,
+            proxyPort: 1080
+         }
+      })).toBe(`mongodb://root:password@localhost:27017/?proxyHost=${randomHostname}&proxyPort=1080`);
+   });
 
 });
 

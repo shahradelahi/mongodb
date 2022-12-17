@@ -1,25 +1,75 @@
 import { Db, MongoClient, MongoClientOptions } from "mongodb";
+import { MongoConfig, makeUrl } from "./utils";
 import * as Utils from "./utils";
-
-export type MongoConfig = Utils.AuthParams & MongoClientOptions;
 
 let mongodb: MongoClient | undefined;
 
-export function InitMongo(config: MongoConfig) {
+/**
+ * Initialize the MongoDB client and automatically connect to the database
+ *
+ * @example
+ *
+ * import { InitMongo, MongoDB } from "@litehex/mongodb";
+ *
+ * InitMongo({
+ *   hostname: 'localhost',
+ *   username: 'root',
+ *   password: '123456',
+ * })
+ *
+ * // Also you can export the MongoDB client to use it in other files
+ * export { MongoDB } from "@litehex/mongodb";
+ *
+ * @param {MongoConfig} config
+ * @returns void
+ */
+export function InitMongo(config: MongoConfig): void {
+
    const options: MongoClientOptions = {};
+
    const tempConfig: any = {...config};
-   const keys = ['hostname', 'port', 'username', 'password', 'database', 'schema'];
+
+   const keys = [
+      'hostname',
+      'port',
+      'username',
+      'password',
+      'database',
+      'schema'
+   ];
+
    keys.forEach(key => {
       if (tempConfig[key]) {
          tempConfig[key] = tempConfig[key];
       }
    });
+
    mongodb = auth(tempConfig, options);
 }
 
-async function collectionExists(db: Db, collection: string) {
+/**
+ * Checks if the collection exists in the database
+ *
+ * @example
+ *
+ * import { MongoDB } from "@litehex/mongodb";
+ *
+ * const exists = await MongoDB.utils.collectionExists('litehex', 'users');
+ *
+ * @param {string|Db} database
+ * @param {string} collection
+ *
+ * @returns {Promise<boolean>}
+ */
+async function collectionExists(database: string | Db, collection: string): Promise<boolean> {
+
+   let db: Db = typeof database === 'string' ? MongoDB.db(database) : database;
+
    const collections = await db.listCollections().toArray();
-   return collections.some(({name}) => name === collection);
+
+   return collections.some(({name}) => {
+      return name === collection;
+   });
 }
 
 async function databaseExists(dbName: string) {
@@ -65,8 +115,8 @@ function db(database: string): Db {
    return db;
 }
 
-function auth(params: Utils.AuthParams, options?: MongoClientOptions): MongoClient {
-   const url = Utils.makeUrl(params);
+function auth(params: MongoConfig, options?: MongoClientOptions): MongoClient {
+   const url = makeUrl(params);
    return new MongoClient(url, options);
 }
 

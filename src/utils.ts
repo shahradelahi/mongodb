@@ -1,11 +1,18 @@
-export interface AuthParams {
+import { MongoClientOptions } from "mongodb";
+
+export interface MongoConfig {
    hostname: string
    schema?: string
    port?: string | number
-   params?: Record<string, any>
+   params?: Record<string, any> & EnchantedOptions
    username?: string
    password?: string
    database?: string
+}
+
+interface EnchantedOptions extends Omit<MongoClientOptions, 'proxyPort'> {
+   proxyPort?: number | string
+
 }
 
 export interface ToObjectOptions {
@@ -59,11 +66,15 @@ export function toObject(doc: any, exec: ToObjectOptions = {}) {
    return JSON.parse(JSON.stringify(doc));
 }
 
-export function makeUrl(params: AuthParams): string {
+export function makeUrl(params: MongoConfig): string {
+
    const {username, password, hostname, port, database} = params;
+
    const portStr = params.schema === 'mongodb+srv' ? '' : `:${port?.toString() || '27017'}`;
+
    const schema = params.schema || 'mongodb';
    let paramsString = ''
+
    if (params.params) {
       paramsString += '/?';
       Object.keys(params.params).forEach(key => {
@@ -71,9 +82,11 @@ export function makeUrl(params: AuthParams): string {
       });
       paramsString = paramsString.slice(0, -1);
    }
+
    let base = `${schema}://${hostname}${portStr}${paramsString}`;
    if (username && password) {
       base = `${schema}://${username}:${password}@${hostname}${portStr}${paramsString}`;
    }
+
    return database ? `${base}/${database}` : base;
 }
