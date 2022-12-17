@@ -80,10 +80,6 @@ describe("Generic Collections and Models", () => {
 
    }, tenMin);
 
-});
-
-describe("Utils", () => {
-
    test("Modify a document", async () => {
       const doc = await TodoCollection.getCollection().findOne({
          completed: false

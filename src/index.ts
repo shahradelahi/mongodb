@@ -1,8 +1,9 @@
-import { Db, MongoClient, MongoClientOptions } from "mongodb";
-import { MongoConfig, makeUrl } from "./utils";
+import { Db, MongoClient, MongoClientOptions, MongoRuntimeError } from "mongodb";
 import * as Utils from "./utils";
+import { makeUrl, MongoConfig } from "./utils";
 
-let mongodb: MongoClient | undefined;
+let _mongodb: MongoClient | undefined;
+let _mongoConfig: MongoConfig | undefined;
 
 /**
  * Initialize the MongoDB client and automatically connect to the database
@@ -25,6 +26,8 @@ let mongodb: MongoClient | undefined;
  */
 export function InitMongo(config: MongoConfig): void {
 
+   _mongoConfig = config;
+
    const options: MongoClientOptions = {};
 
    const tempConfig: any = {...config};
@@ -44,7 +47,33 @@ export function InitMongo(config: MongoConfig): void {
       }
    });
 
-   mongodb = auth(tempConfig, options);
+   _mongodb = auth(tempConfig, options);
+}
+
+/**
+ * Get the MongoDB configuration
+ *
+ * @returns {MongoConfig}
+ * @throws {MongoRuntimeError} if MongoDB is not initialized
+ */
+export function getMongoConfig(): MongoConfig {
+   if (!_mongoConfig) {
+      throw new MongoRuntimeError('MongoDB is not initialized');
+   }
+   return _mongoConfig;
+}
+
+/**
+ * Get the MongoDB client
+ *
+ * @returns {MongoClient}
+ * @throws {MongoRuntimeError} if MongoDB is not initialized
+ */
+export function getMongoClient(): MongoClient {
+   if (!_mongodb) {
+      throw new MongoRuntimeError('MongoDB is not initialized');
+   }
+   return _mongodb;
 }
 
 /**
@@ -54,7 +83,7 @@ export function InitMongo(config: MongoConfig): void {
  *
  * import { MongoDB } from "@litehex/mongodb";
  *
- * const exists = await MongoDB.utils.collectionExists('litehex', 'users');
+ * const exists = await MongoDB.collectionExists('litehex', 'users');
  *
  * @param {string|Db} database
  * @param {string} collection
@@ -72,17 +101,36 @@ async function collectionExists(database: string | Db, collection: string): Prom
    });
 }
 
-async function databaseExists(dbName: string) {
-   if (!mongodb) {
+/**
+ * Checks if the database exists in the database
+ *
+ *
+ * @example
+ *
+ * import { MongoDB } from "@litehex/mongodb";
+ *
+ * const exists = await MongoDB.databaseExists('litehex');
+ *
+ * @param {string} dbName
+ * @returns {Promise<boolean>}
+ */
+async function databaseExists(dbName: string): Promise<boolean> {
+   if (!_mongodb) {
       throw new Error('MongoDB is not initialized');
    }
-   const collections = await mongodb.db(dbName)
+   const collections = await _mongodb.db(dbName)
        .listCollections()
        .toArray();
    return collections.length > 0;
 }
 
-async function isConnected(db: Db) {
+/**
+ * Checks if the database is connected
+ *
+ * @param {Db} db
+ * @returns {Promise<boolean>}
+ */
+async function isConnected(db: Db): Promise<boolean> {
    try {
       await db.command({ping: 1});
       return true;
@@ -92,25 +140,25 @@ async function isConnected(db: Db) {
 }
 
 async function connect(database?: string): Promise<Db | undefined> {
-   if (!mongodb) {
+   if (!_mongodb) {
       throw new Error('MongoDB is not initialized');
    }
-   await mongodb.connect();
-   return mongodb.db(database);
+   await _mongodb.connect();
+   return _mongodb.db(database);
 }
 
 async function disconnect() {
-   if (!mongodb) {
+   if (!_mongodb) {
       throw new Error('MongoDB is not initialized');
    }
-   await mongodb.close();
+   await _mongodb.close();
 }
 
 function db(database: string): Db {
-   if (!mongodb) {
+   if (!_mongodb) {
       throw new Error('MongoDB is not initialized');
    }
-   const db = mongodb.db(database);
+   const db = _mongodb.db(database);
    !isConnected(db) && connect(database);
    return db;
 }
@@ -121,11 +169,11 @@ function auth(params: MongoConfig, options?: MongoClientOptions): MongoClient {
 }
 
 async function renameDatabase(dbName: string, newDbName: string) {
-   if (!mongodb) {
+   if (!_mongodb) {
       throw new Error('MongoDB is not connected');
    }
-   const db = mongodb.db(dbName);
-   const newDb = mongodb.db(newDbName);
+   const db = _mongodb.db(dbName);
+   const newDb = _mongodb.db(newDbName);
    if (await databaseExists(newDbName)) {
       throw new Error(`Database "${newDbName}" already exists`);
    }
@@ -156,6 +204,8 @@ export const MongoDB = {
    db,
    renameDatabase,
    collectionExists,
+   getClient: getMongoClient,
+   getConfig: getMongoConfig,
    utils: Utils
 }
 

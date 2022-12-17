@@ -3,16 +3,13 @@ import MongoDB, { InitMongo } from "../src/index";
 
 export { MongoDB } from "../src/index";
 
-
 InitMongo({
    hostname: process.env.MONGO_HOSTNAME || "localhost",
    port: process.env.MONGO_PORT || 27017,
-   username: process.env.MONGO_USERNAME || "root",
-   password: process.env.MONGO_PASSWORD || "password",
+   username: process.env.MONGO_USERNAME,
+   password: process.env.MONGO_PASSWORD,
    params: {
-      authMechanism: "DEFAULT",
-      proxyHost: process.env.MONGO_PROXY_HOST || "127.0.0.1",
-      proxyPort: process.env.MONGO_PROXY_PORT || 1080
+      authMechanism: "DEFAULT"
    }
 });
 
