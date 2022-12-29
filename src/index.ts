@@ -87,16 +87,14 @@ export function getMongoClient(): MongoClient {
  *
  * const exists = await MongoDB.collectionExists('litehex', 'users');
  *
- * @param {string|Db} database
+ * @param {Db} dbInstance
  * @param {string} collection
  *
  * @returns {Promise<boolean>}
  */
-async function collectionExists(database: string | Db, collection: string): Promise<boolean> {
+async function collectionExists(dbInstance: Db, collection: string): Promise<boolean> {
 
-   let db: Db = typeof database === 'string' ? MongoDB.db(database) : database;
-
-   const collections = await db.listCollections().toArray();
+   const collections = await dbInstance.listCollections().toArray();
 
    return collections.some(({ name }) => {
       return name === collection;
@@ -114,16 +112,23 @@ async function collectionExists(database: string | Db, collection: string): Prom
  * const exists = await MongoDB.databaseExists('litehex');
  *
  * @param {string} dbName
+ * @param {MongoClient?} clientInstance
+ *
  * @returns {Promise<boolean>}
  */
-async function databaseExists(dbName: string): Promise<boolean> {
-   if (!_mongodb) {
-      throw new MongoError('MongoClient has not been initialized');
+async function databaseExists(dbName: string, clientInstance?: MongoClient): Promise<boolean> {
+
+   const client = clientInstance || _mongodb;
+
+   if (!client) {
+      throw new MongoError('Client has not been initialized');
    }
-   const collections = await _mongodb.db(dbName)
-       .listCollections()
-       .toArray();
-   return collections.length > 0;
+
+   const databases = await client.db().admin().listDatabases();
+
+   return databases.databases.some(({ name }) => {
+      return name === dbName;
+   });
 }
 
 /**
