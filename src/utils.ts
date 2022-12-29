@@ -1,31 +1,13 @@
-import { MongoClientOptions } from "mongodb";
+import { MongoConfig, ObjectOptions } from "./types";
 
-export interface MongoConfig {
-   hostname: string
-   schema?: string
-   port?: string | number
-   params?: Record<string, any> & EnchantedOptions
-   username?: string
-   password?: string
-   database?: string
-}
+export function toObject(doc: any, exec: ObjectOptions = {}) {
 
-interface EnchantedOptions extends Omit<MongoClientOptions, 'proxyPort'> {
-   proxyPort?: number | string
-
-}
-
-export interface ToObjectOptions {
-   $unset?: string[],
-   $set?: Record<string, any>,
-   $rename?: Record<string, any>
-}
-
-export function toObject(doc: any, exec: ToObjectOptions = {}) {
    if (!doc) {
       return doc;
    }
-   const {$unset, $set, $rename} = exec;
+
+   const { $unset, $set, $rename } = exec;
+
    $unset && $unset.forEach(key => {
       if (Object.keys(doc).includes(key)) {
          delete doc[key];
@@ -45,7 +27,9 @@ export function toObject(doc: any, exec: ToObjectOptions = {}) {
          }
       }
    });
+
    $set && Object.assign(doc, $set);
+
    $rename && Object.keys($rename).forEach(key => {
       if (Object.keys(doc).includes(key)) {
          doc[$rename[key]] = doc[key];
@@ -63,22 +47,23 @@ export function toObject(doc: any, exec: ToObjectOptions = {}) {
          }
       }
    });
+
    return JSON.parse(JSON.stringify(doc));
 }
 
-export function makeUrl(params: MongoConfig): string {
+export function makeConnectionString(config: MongoConfig): string {
 
-   const {username, password, hostname, port, database} = params;
+   const { username, password, hostname, port, database } = config;
 
-   const portStr = params.schema === 'mongodb+srv' ? '' : `:${port?.toString() || '27017'}`;
+   const portStr = config.schema === 'mongodb+srv' ? '' : `:${port?.toString() || '27017'}`;
 
-   const schema = params.schema || 'mongodb';
+   const schema = config.schema || 'mongodb';
    let paramsString = ''
 
-   if (params.params) {
+   if (config.params) {
       paramsString += '/?';
-      Object.keys(params.params).forEach(key => {
-         paramsString += `${key}=${params.params ? params.params[key] : ''}&`;
+      Object.keys(config.params).forEach(key => {
+         paramsString += `${key}=${config.params ? config.params[key] : ''}&`;
       });
       paramsString = paramsString.slice(0, -1);
    }

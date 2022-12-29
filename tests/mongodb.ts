@@ -37,8 +37,8 @@ export class TodoCollection extends MongoCollection<Todo> {
       };
    }
 
-   static createOne({name, completed}: { name: string, completed: boolean }) {
-      return this.insertOne({name, completed});
+   static createOne({ name, completed }: { name: string, completed: boolean }) {
+      return this.insertOne({ name, completed });
    }
 }
 

@@ -101,7 +101,7 @@ describe("Mongo Url Maker", () => {
 
    test("A SRV Schema", async () => {
 
-      expect(MongoDB.utils.makeUrl({
+      expect(MongoDB.utils.makeConnectionString({
          hostname: randomHostname,
          schema: "mongodb+srv",
          username: "root",
@@ -111,7 +111,7 @@ describe("Mongo Url Maker", () => {
    });
 
    test("A Normal Schema with Params", async () => {
-      expect(MongoDB.utils.makeUrl({
+      expect(MongoDB.utils.makeConnectionString({
          hostname: "localhost",
          port: 27017,
          username: "root",
@@ -123,7 +123,7 @@ describe("Mongo Url Maker", () => {
    });
 
    test("With Proxy settings", async () => {
-      expect(MongoDB.utils.makeUrl({
+      expect(MongoDB.utils.makeConnectionString({
          hostname: "localhost",
          username: "root",
          password: "password",

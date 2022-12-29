@@ -1,6 +1,7 @@
 import { Db, MongoClient, MongoClientOptions, MongoError, MongoRuntimeError } from "mongodb";
 import * as Utils from "./utils";
-import { makeUrl, MongoConfig } from "./utils";
+import { makeConnectionString } from "./utils";
+import { MongoConfig } from "./types";
 
 let _mongodb: MongoClient | undefined;
 let _mongoConfig: MongoConfig | undefined;
@@ -184,7 +185,7 @@ function db(database: string): Db {
  */
 function auth(config: MongoConfig, options?: MongoClientOptions): MongoClient {
 
-   const url = makeUrl(config);
+   const url = makeConnectionString(config);
    const instants = new MongoClient(url, options);
 
    if (!_instances[url]) {
