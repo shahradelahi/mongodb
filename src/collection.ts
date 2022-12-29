@@ -14,6 +14,8 @@ import {
    InsertOneOptions,
    InsertOneResult,
    Join,
+   MongoClient,
+   MongoError,
    NestedPaths,
    ObjectId,
    PropertyType,
@@ -28,6 +30,7 @@ import MongoDB from "./index";
 export interface CollectionConfig extends CollectionOptions {
    name: string;
    database: string | Db;
+   client?: MongoClient;
    // Timestamps - By default, the collection will add createdAt and updatedAt fields to the documents
    timestamps?: boolean;
    // Timestamps (format) - By default, the collection will use the Millis format for the timestamps
@@ -140,6 +143,9 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @private
     */
    private static _getConfig(): CollectionConfig {
+      if (!this.prototype.getConfig) {
+         throw new MongoError("The getConfig() method is not implemented in the child class");
+      }
       return this.prototype.getConfig();
    }
 
@@ -185,6 +191,12 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @returns {Db} The database instance.
     */
    static getDb(): Db {
+      const { client } = this._getConfig();
+
+      if (client) {
+         return client.db(this.getDbName());
+      }
+
       return MongoDB.db(this.getDbName());
    }
 
@@ -283,7 +295,6 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
     * @returns {Promise<UpdateResult>} The result.
     */
    static async updateMany<TSchema extends Document = any>(filter: Filter<TSchema>, update: UpdateQuery<TSchema>, options?: UpdateOptions): Promise<UpdateResult> {
-      // return this.getCollection<TSchema>().updateMany(filter, this._updateTimestamps(update, false), options as UpdateOptions);
       return this.getCollection<TSchema>().updateMany(filter as MongoFilter<TSchema>, this._updateTimestamps(update, false), options as UpdateOptions);
    }
 

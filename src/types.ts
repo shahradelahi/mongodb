@@ -1,4 +1,4 @@
-export {
+export type {
    Collection as MongoCollection,
    UpdateResult as MongoUpdateResult,
    BulkWriteOptions,

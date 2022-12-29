@@ -1,9 +1,10 @@
-import { Db, MongoClient, MongoClientOptions, MongoRuntimeError } from "mongodb";
+import { Db, MongoClient, MongoClientOptions, MongoError, MongoRuntimeError } from "mongodb";
 import * as Utils from "./utils";
 import { makeUrl, MongoConfig } from "./utils";
 
 let _mongodb: MongoClient | undefined;
 let _mongoConfig: MongoConfig | undefined;
+const _instances: Record<string, MongoClient> = {};
 
 /**
  * Initialize the MongoDB client and automatically connect to the database
@@ -30,7 +31,7 @@ export function InitMongo(config: MongoConfig): void {
 
    const options: MongoClientOptions = {};
 
-   const tempConfig: any = {...config};
+   const tempConfig: any = { ...config };
 
    const keys = [
       'hostname',
@@ -96,7 +97,7 @@ async function collectionExists(database: string | Db, collection: string): Prom
 
    const collections = await db.listCollections().toArray();
 
-   return collections.some(({name}) => {
+   return collections.some(({ name }) => {
       return name === collection;
    });
 }
@@ -116,7 +117,7 @@ async function collectionExists(database: string | Db, collection: string): Prom
  */
 async function databaseExists(dbName: string): Promise<boolean> {
    if (!_mongodb) {
-      throw new Error('MongoDB is not initialized');
+      throw new MongoError('MongoClient has not been initialized');
    }
    const collections = await _mongodb.db(dbName)
        .listCollections()
@@ -132,7 +133,7 @@ async function databaseExists(dbName: string): Promise<boolean> {
  */
 async function isConnected(db: Db): Promise<boolean> {
    try {
-      await db.command({ping: 1});
+      await db.command({ ping: 1 });
       return true;
    } catch (e) {
       return false;
@@ -141,59 +142,102 @@ async function isConnected(db: Db): Promise<boolean> {
 
 async function connect(database?: string): Promise<Db | undefined> {
    if (!_mongodb) {
-      throw new Error('MongoDB is not initialized');
+      throw new MongoError('MongoClient has not been initialized');
    }
    await _mongodb.connect();
    return _mongodb.db(database);
 }
 
-async function disconnect() {
-   if (!_mongodb) {
-      throw new Error('MongoDB is not initialized');
+/**
+ * Disconnect client from MongoDB cluster
+ *
+ * @param {boolean} force - Closes every connection in the connection pool
+ * @returns {Promise<void>}
+ */
+async function disconnect(force: boolean = false): Promise<void> {
+   if (force) {
+      await Promise.all(Object.values(_instances).map(client => client.close()));
+      return;
    }
-   await _mongodb.close();
+
+   if (_mongodb) {
+      await _mongodb.close();
+   }
 }
 
 function db(database: string): Db {
    if (!_mongodb) {
-      throw new Error('MongoDB is not initialized');
+      throw new MongoError('MongoClient has not been initialized');
    }
    const db = _mongodb.db(database);
    !isConnected(db) && connect(database);
    return db;
 }
 
-function auth(params: MongoConfig, options?: MongoClientOptions): MongoClient {
-   const url = makeUrl(params);
-   return new MongoClient(url, options);
+/**
+ * Create a MongoClient instance
+ *
+ * @param {MongoConfig} config
+ * @param {MongoClientOptions} options
+ *
+ * @returns {MongoClient}
+ */
+function auth(config: MongoConfig, options?: MongoClientOptions): MongoClient {
+
+   const url = makeUrl(config);
+   const instants = new MongoClient(url, options);
+
+   if (!_instances[url]) {
+      _instances[url] = instants;
+   }
+
+   return _instances[url];
 }
 
-async function renameDatabase(dbName: string, newDbName: string) {
+/**
+ * Rename a Database
+ *
+ * @param {string} dbName
+ * @param {string} newDbName
+ *
+ * @returns {Promise<boolean>}
+ */
+async function renameDatabase(dbName: string, newDbName: string): Promise<boolean> {
    if (!_mongodb) {
-      throw new Error('MongoDB is not connected');
+      throw new MongoError('MongoClient has not been initialized');
    }
+
    const db = _mongodb.db(dbName);
    const newDb = _mongodb.db(newDbName);
+
    if (await databaseExists(newDbName)) {
-      throw new Error(`Database "${newDbName}" already exists`);
+      throw new MongoRuntimeError(`Database "${newDbName}" already exists`);
    }
+
    if (!await databaseExists(dbName)) {
-      throw new Error(`Database "${dbName}" doesn't exist`);
+      throw new MongoRuntimeError(`Database "${dbName}" doesn't exist`);
    }
+
    if (dbName === newDbName) {
-      throw new Error(`Database names are the same`);
+      throw new MongoRuntimeError(`Another database with the same name "${dbName}" already exists`);
    }
+
    const collections = await db.listCollections().toArray();
-   for (const {name} of collections) {
+
+   for (const { name } of collections) {
       const docs = await db.collection(name).find().toArray();
       await newDb.createCollection(name);
+
       if (docs.length > 0) {
          await newDb.collection(name).insertMany(docs);
       }
+
       await db.collection(name).drop();
    }
+
    await db.dropDatabase();
-   return newDb;
+
+   return !!newDb
 }
 
 export const MongoDB = {
