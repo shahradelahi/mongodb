@@ -1,5 +1,5 @@
-import MongoCollection, { CollectionConfig, OptionalId } from "../src/collection";
-import MongoDB, { InitMongo } from "../src/index";
+import MongoCollection, { CollectionConfig } from "../src/collection";
+import MongoDB, { InitMongo, OptionalId } from "../src/index";
 
 export { MongoDB } from "../src/index";
 

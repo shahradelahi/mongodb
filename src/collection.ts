@@ -2,29 +2,20 @@ import {
    BulkWriteOptions,
    Collection,
    CollectionOptions,
-   Condition,
    Db,
    DeleteOptions,
    DeleteResult,
    Document,
    Filter as MongoFilter,
-   FindCursor as MongoCursor,
    FindOptions,
    InsertManyResult,
    InsertOneOptions,
    InsertOneResult,
-   Join,
    MongoClient,
    MongoError,
-   NestedPaths,
-   ObjectId,
-   PropertyType,
-   RootFilterOperators,
-   UpdateFilter,
-   UpdateOptions,
-   UpdateResult as MongoUpdateResult
+   UpdateOptions
 } from 'mongodb';
-import MongoDB from "./index";
+import MongoDB, { Filter, FindCursor, LeastOne, OptionalId, UpdateQuery, UpdateResult } from "./index";
 
 
 export interface CollectionConfig extends CollectionOptions {
@@ -331,25 +322,3 @@ export default abstract class MongoCollection<TSchema extends Document = Documen
    }
 
 }
-
-export type UpdateQuery<TSchema extends Document = any> = UpdateFilter<TSchema> | Partial<TSchema>;
-
-export type UpdateResult<TSchema extends Document = any> = TSchema | MongoUpdateResult;
-
-export type LeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = Partial<T> & U[keyof U];
-
-export type Filter<TSchema> = Partial<TSchema> | ({
-   [Property in Join<NestedPaths<WithId<TSchema>, []>, '.'>]?: Condition<PropertyType<WithId<TSchema>, Property>>;
-} & RootFilterOperators<WithId<TSchema>>) | ({
-   [Property in Join<NestedPaths<TSchema, []>, '.'>]?: Condition<PropertyType<TSchema, Property>>;
-} & RootFilterOperators<TSchema>)
-
-export type WithId<TSchema> = TSchema & {
-   _id: ObjectId;
-}
-
-export type OptionalId<TSchema> = Omit<TSchema, '_id'> & {
-   _id?: ObjectId | string;
-}
-
-export type FindCursor<TSchema extends Document = any> = MongoCursor<TSchema> | MongoCursor<WithId<TSchema>>
